@@ -6,7 +6,6 @@
 
 <title>Planning Examens</title>
 
-<!-- Bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
@@ -17,6 +16,7 @@ body {
     align-items:center;
     justify-content:center;
     font-family: Arial;
+    padding:10px;
 }
 
 .card-box {
@@ -43,7 +43,7 @@ img {
     margin-top:15px;
     border-radius:12px;
     display:none;
-    transition:0.3s;
+    transition:0.3s ease;
 }
 
 .zoom {
@@ -52,6 +52,51 @@ img {
 
 .btn {
     border-radius:12px;
+}
+
+/* TIMER */
+.timer-box {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #ff4e50, #f9d423);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
+/* MOBILE */
+@media (max-width: 576px) {
+    .card-box {
+        padding: 18px;
+        max-width: 95%;
+    }
+
+    .timer-box {
+        font-size: 14px;
+        padding: 12px;
+    }
+
+    .btn {
+        font-size: 12px;
+        padding: 10px;
+    }
+
+    .d-flex {
+        flex-direction: column;
+    }
+
+    .d-flex .btn {
+        width: 100% !important;
+    }
 }
 </style>
 </head>
@@ -62,7 +107,10 @@ img {
 
 <h4>📅 Planning Examens</h4>
 
-<!-- Niveau -->
+<!-- TIMER -->
+<div id="timer" class="timer-box"></div>
+
+<!-- LEVEL -->
 <select id="level" class="form-select mt-3">
 <option value="">Choisir niveau</option>
 <option value="PEP">PEP</option>
@@ -70,15 +118,15 @@ img {
 <option value="PES">PES</option>
 </select>
 
-<!-- Spécialité -->
+<!-- SPEC -->
 <select id="spec" class="form-select mt-3">
 <option value="">Choisir spécialité</option>
 </select>
 
-<!-- Image -->
+<!-- IMAGE -->
 <img id="img" />
 
-<!-- Buttons -->
+<!-- BUTTONS -->
 <div class="d-flex gap-2 mt-3">
 <button class="btn btn-primary w-100" onclick="zoom()">🔍 Zoom</button>
 <button class="btn btn-success w-100" onclick="download()">⬇️ Télécharger</button>
@@ -89,22 +137,20 @@ img {
 
 <script>
 
-// DATA
+/* DATA */
 const data = {
     PEP: ["Arabe","Français","Sport"],
     PEM: ["Arabe","Math","Physique","Anglais","Français","Sport","Histoire-Géo","Science"],
     PES: ["Arabe","Math","Anglais","Sport","Histoire-Géo","Science"]
 };
 
-// Remplir spécialités
+/* LEVEL */
 document.getElementById("level").addEventListener("change", function(){
-    let level = this.value;
     let spec = document.getElementById("spec");
+    spec.innerHTML = '<option value="">Choisir spécialité</option>';
 
-    spec.innerHTML = '<option>Choisir spécialité</option>';
-
-    if(data[level]){
-        data[level].forEach(s => {
+    if(data[this.value]){
+        data[this.value].forEach(s=>{
             let opt = document.createElement("option");
             opt.text = s;
             spec.add(opt);
@@ -112,44 +158,85 @@ document.getElementById("level").addEventListener("change", function(){
     }
 });
 
-// Afficher image
+/* IMAGE */
 document.getElementById("spec").addEventListener("change", function(){
     let level = document.getElementById("level").value;
-    let spec = this.value;
-
     let img = document.getElementById("img");
 
-    img.src = "images/" + level + "_" + spec + ".jpg";
-    img.style.display = "block";
+    if(level && this.value){
+        img.src = "images/" + level + "_" + this.value + ".jpg";
+        img.style.display = "block";
+    }
 });
 
-// Zoom
+/* ZOOM */
 function zoom(){
     document.getElementById("img").classList.toggle("zoom");
 }
 
-// Télécharger
+/* DOWNLOAD */
 function download(){
     let url = document.getElementById("img").src;
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "planning.jpg";
-    a.click();
+    if(!url || url.includes("undefined")) return;
+
+    fetch(url)
+    .then(res => res.blob())
+    .then(blob => {
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "planning.jpg";
+        a.click();
+    });
 }
 
-// Partager
+/* SHARE */
 function share(){
     let url = document.getElementById("img").src;
+
+    if(!url || url.includes("undefined")){
+        alert("Choisir une image");
+        return;
+    }
 
     if(navigator.share){
         navigator.share({
             title:"Planning Examens",
-            url: url
+            url:url
         });
     } else {
-        alert("Partage non supporté");
+        navigator.clipboard.writeText(url);
+        alert("Lien copié !");
     }
 }
+
+/* TIMER */
+const targetDate = new Date("2026-05-03T08:30:00").getTime();
+const timer = document.getElementById("timer");
+
+function updateTimer(){
+    const now = new Date().getTime();
+    const diff = targetDate - now;
+
+    if(diff <= 0){
+        timer.innerHTML = `
+            🎓 Bonne Courage à tous 💪<br>
+            <small>L'examen a commencé</small>
+        `;
+        timer.style.background = "linear-gradient(135deg,#00c853,#64dd17)";
+        timer.style.animation = "none";
+        return;
+    }
+
+    let days = Math.floor(diff / (1000*60*60*24));
+    let hours = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+    let minutes = Math.floor((diff%(1000*60*60))/(1000*60));
+    let seconds = Math.floor((diff%(1000*60))/1000);
+
+    timer.innerHTML = `⏳ ${days}j ${hours}h ${minutes}m ${seconds}s`;
+}
+
+setInterval(updateTimer,1000);
+updateTimer();
 
 </script>
 
