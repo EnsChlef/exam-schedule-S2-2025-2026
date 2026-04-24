@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Planning Examens</title>
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body {
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: Arial;
+}
+
+.card-box {
+    width:100%;
+    max-width:420px;
+    background:white;
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+    text-align:center;
+}
+
+h4 {
+    font-weight:bold;
+}
+
+select {
+    border-radius:12px !important;
+    padding:10px;
+}
+
+img {
+    width:100%;
+    margin-top:15px;
+    border-radius:12px;
+    display:none;
+    transition:0.3s;
+}
+
+.zoom {
+    transform:scale(1.4);
+}
+
+.btn {
+    border-radius:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card-box">
+
+<h4>📅 Planning Examens</h4>
+
+<!-- Niveau -->
+<select id="level" class="form-select mt-3">
+<option value="">Choisir niveau</option>
+<option value="PEP">PEP</option>
+<option value="PEM">PEM</option>
+<option value="PES">PES</option>
+</select>
+
+<!-- Spécialité -->
+<select id="spec" class="form-select mt-3">
+<option value="">Choisir spécialité</option>
+</select>
+
+<!-- Image -->
+<img id="img" />
+
+<!-- Buttons -->
+<div class="d-flex gap-2 mt-3">
+<button class="btn btn-primary w-100" onclick="zoom()">🔍 Zoom</button>
+<button class="btn btn-success w-100" onclick="download()">⬇️ Télécharger</button>
+<button class="btn btn-warning w-100" onclick="share()">📤 Partager</button>
+</div>
+
+</div>
+
+<script>
+
+// DATA
+const data = {
+    PEP: ["Arabe","Français","Sport"],
+    PEM: ["Arabe","Math","Physique","Anglais","Français","Sport","Histoire-Géo","Science"],
+    PES: ["Arabe","Math","Anglais","Sport","Histoire-Géo","Science"]
+};
+
+// Remplir spécialités
+document.getElementById("level").addEventListener("change", function(){
+    let level = this.value;
+    let spec = document.getElementById("spec");
+
+    spec.innerHTML = '<option>Choisir spécialité</option>';
+
+    if(data[level]){
+        data[level].forEach(s => {
+            let opt = document.createElement("option");
+            opt.text = s;
+            spec.add(opt);
+        });
+    }
+});
+
+// Afficher image
+document.getElementById("spec").addEventListener("change", function(){
+    let level = document.getElementById("level").value;
+    let spec = this.value;
+
+    let img = document.getElementById("img");
+
+    img.src = "images/" + level + "_" + spec + ".jpg";
+    img.style.display = "block";
+});
+
+// Zoom
+function zoom(){
+    document.getElementById("img").classList.toggle("zoom");
+}
+
+// Télécharger
+function download(){
+    let url = document.getElementById("img").src;
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "planning.jpg";
+    a.click();
+}
+
+// Partager
+function share(){
+    let url = document.getElementById("img").src;
+
+    if(navigator.share){
+        navigator.share({
+            title:"Planning Examens",
+            url: url
+        });
+    } else {
+        alert("Partage non supporté");
+    }
+}
+
+</script>
+
+</body>
+</html>
